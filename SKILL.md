@@ -7,9 +7,13 @@ description: Fetches developer.salesforce.com / salesforce.com pages when Claude
 
 ## Why this exists
 
-Claude Code's `WebFetch` tool sends a lightweight HTTP request - no JavaScript execution, a different TLS/HTTP2 fingerprint than a real browser, and a User-Agent that bot-detection systems (Akamai, Cloudflare, or Salesforce's own edge security) can fingerprint and block. `developer.salesforce.com` does exactly this: its docs pages return a 403 to `WebFetch` even though the identical URL renders normally in an actual browser.
+Some Salesforce documentation pages don't load when fetched directly - the request comes back blocked, even though the exact same page opens completely normally in a real browser. This skill works around that by opening the page in an actual (invisible) browser instead, the same way a person would, so the real content can be read.
 
-This skill drives a real headless Chromium browser via Playwright instead, which presents a realistic fingerprint and gets past that specific block.
+**More technically:** Salesforce's developer docs site (particularly the ISVforce Guide under `developer.salesforce.com/docs/platform/isvforce/`) is a JavaScript-rendered app - the guide content loads via client-side JS after the page boots, not in the initial HTML response. Claude Code's `WebFetch` tool doesn't execute JavaScript, so even where it isn't blocked outright, it would have nothing real to extract. In practice it's blocked more directly than that: `WebFetch` gets an explicit HTTP 403 Forbidden on these pages, consistent with bot/WAF detection (Akamai, Cloudflare, or Salesforce's own edge security) rejecting the plain HTTP request's fingerprint - no JS execution, and a TLS/HTTP2/header signature that doesn't look like a real browser - not just a rendering gap.
+
+This failure mode is also unusually easy to miss: `WebFetch` passes whatever it does retrieve through a smaller model that summarizes it against the prompt, so a blocked or near-empty page can produce a vague or subtly wrong summary rather than an obvious error - it can look like it worked when it didn't. That's exactly why this skill's instructions below say to reach for this fallback immediately on failure, rather than trusting a suspiciously thin `WebFetch` result.
+
+This skill drives a real headless Chromium browser via Playwright instead, which executes the page's JavaScript and presents a realistic fingerprint - getting past both problems at once.
 
 ## When to use this
 

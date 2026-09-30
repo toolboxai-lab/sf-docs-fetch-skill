@@ -4,7 +4,18 @@ A [Claude Code](https://claude.com/claude-code) skill that fetches `developer.sa
 
 ## The problem
 
-Salesforce's developer docs site (particularly the ISVforce Guide under `developer.salesforce.com/docs/platform/isvforce/`) returns an HTTP 403 to Claude Code's `WebFetch` tool, even though the identical URL loads fine in a real browser. This looks like bot/WAF detection blocking the plain HTTP request `WebFetch` sends - no JavaScript execution, and a request fingerprint (TLS/HTTP2 handshake, headers) that doesn't look like a real browser.
+Some Salesforce documentation pages don't load when Claude Code tries to fetch them directly - the request comes back blocked, even though the exact same page opens completely normally in your own browser. This skill fixes that by having Claude Code open the page in an actual (invisible) browser instead, the same way you would, so it can read the real content.
+
+<details>
+<summary>More technical detail</summary>
+
+Salesforce's developer docs site (particularly the ISVforce Guide under `developer.salesforce.com/docs/platform/isvforce/`) is a JavaScript-rendered app - the guide content loads via client-side JS after the page boots, not in the initial HTML response. Claude Code's `WebFetch` tool doesn't execute JavaScript, so even where it isn't blocked outright, it would have nothing real to extract.
+
+In practice it's blocked more directly than that: `WebFetch` gets an explicit HTTP 403 Forbidden on these pages, consistent with bot/WAF detection rejecting the plain HTTP request's fingerprint (no JS execution, and a TLS/HTTP2/header signature that doesn't look like a real browser) - not just a rendering gap.
+
+This failure mode is also unusually easy to miss: `WebFetch` passes whatever it does retrieve through a smaller model that summarizes it against your prompt, so a blocked or near-empty page can produce a vague or subtly wrong summary rather than an obvious error - it can look like it worked when it didn't.
+
+</details>
 
 ## The fix
 
