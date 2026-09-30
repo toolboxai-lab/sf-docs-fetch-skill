@@ -1,0 +1,16 @@
+{
+  "name": "sf-docs-fetch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Headless-browser fallback for fetching developer.salesforce.com pages that block Claude Code's WebFetch tool with a 403.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
