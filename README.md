@@ -1,4 +1,5 @@
 # sf-docs-fetch
+Claude Code isn't good at reading Salesforce documentation. Until now.
 
 A [Claude Code](https://claude.com/claude-code) skill that fetches `developer.salesforce.com` pages when Claude Code's built-in `WebFetch` tool gets blocked.
 
